@@ -7,12 +7,13 @@ function App() {
   const [top, setTop] = useState('');
   const [bottom, setBottom] = useState('');
   const [background, setBackground] = useState('oprah');
-  const [queryString, setQuerystring] = useState(
+  const [queryString, setQueryString] = useState(
     'https://api.memegen.link/images/oprah.jpg',
   );
-  const [downloadUrl, setDownloadUrl] = useState();
+  const [downloadUrl, setDownloadUrl] = useState('');
+  // const [previewError, setPreviewError] = useState(false);
 
-  function downloadMeme(url, name) {
+  function downloadMeme(url) {
     fetch(url)
       .then((response) => {
         return response.blob();
@@ -20,15 +21,31 @@ function App() {
       .then((blob) => {
         const blobbedUrl = URL.createObjectURL(blob);
         setDownloadUrl(blobbedUrl);
-        console.log(blobbedUrl);
       })
       .catch(() => console.log('Error'));
   }
 
+  function sanitizeUrl(string) {
+    return string
+      .replace(/\?/g, '~q')
+      .replace(/#/g, '~h')
+      .replace(/\//g, '~s')
+      .replace(/\?/g, '~q')
+      .replace(/&/g, '~a')
+      .replace(/%/g, '~p')
+      .replace(/#/g, '~h')
+      .replace(/\//g, '~s')
+      .replace(/\\/, '~b')
+      .replace(/</g, '~l')
+      .replace(/>/g, '~g');
+  }
+
   function createUrl() {
-    return `${host}/${background}${top ? '/' + top : '/_'}${
-      bottom ? '/' + bottom : ''
-    }${fileExtension}`;
+    const result = `${host}/${sanitizeUrl(background)}${
+      top ? '/' + sanitizeUrl(top) : '/_'
+    }${bottom ? '/' + sanitizeUrl(bottom) : ''}${fileExtension}`;
+    console.log(result);
+    return result;
   }
 
   return (
@@ -36,26 +53,32 @@ function App() {
       <h1>The Amazing Meme Generator!</h1>
       <p>Create. memes. quickly.</p>
       <h2>Enter your text here:</h2>
-      <label>Top text </label>
-      <input value={top} onChange={(e) => setTop(e.currentTarget.value)} />
-      <br />
-      <label>Bottom text: </label>
+      <label htmlFor="topText">Top text </label>
       <input
+        id="topText"
+        value={top}
+        onChange={(e) => setTop(e.currentTarget.value)}
+      />
+      <br />
+      <label htmlFor="bottomText">Bottom text: </label>
+      <input
+        id="bottomText"
         value={bottom}
         onChange={(e) => setBottom(e.currentTarget.value)}
       />
       <br />
-      <label>Change your template: </label>
+      <label htmlFor="backgroundText">Change your template: </label>
       <input
+        id="backgroundText"
         value={background}
         onChange={(e) => setBackground(e.currentTarget.value)}
       />
-      <br />
+      {/* {previewError && <span>`${background}his is not a valid meme`</span>} */}
       <br />
       <button
         data-test-id="generate-meme"
         onClick={() => {
-          setQuerystring(createUrl());
+          setQueryString(createUrl());
           downloadMeme(createUrl());
         }}
       >
@@ -77,13 +100,13 @@ function App() {
         href={downloadUrl}
       >
         <button
-          disabled={!downloadUrl ? true : false}
+          disabled={downloadUrl === '' ? true : false}
           aria-label="download meme"
         >
           Download
         </button>
       </a>
-      {!downloadUrl ? <span>Create your meme first</span> : null}
+      {downloadUrl === '' ? <span>Create your meme first</span> : null}
     </>
   );
 }
