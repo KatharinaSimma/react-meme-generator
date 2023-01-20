@@ -11,20 +11,9 @@ function App() {
     'https://api.memegen.link/images/oprah.jpg',
   );
   const [downloadUrl, setDownloadUrl] = useState('');
-  // const [previewError, setPreviewError] = useState(false);
+  const [memeHistory, setMemeHistory] = useState([]);
 
-  function downloadMeme(url) {
-    fetch(url)
-      .then((response) => {
-        return response.blob();
-      })
-      .then((blob) => {
-        const blobbedUrl = URL.createObjectURL(blob);
-        setDownloadUrl(blobbedUrl);
-      })
-      .catch(() => console.log('Error'));
-  }
-
+  // create a URL string for requests, incl special characters
   function sanitizeUrl(string) {
     return string
       .replace(/\?/g, '~q')
@@ -44,8 +33,68 @@ function App() {
     const result = `${host}/${sanitizeUrl(background)}${
       top ? '/' + sanitizeUrl(top) : '/_'
     }${bottom ? '/' + sanitizeUrl(bottom) : ''}${fileExtension}`;
-    console.log(result);
     return result;
+  }
+
+  // when creating the preview set the download URL via request + blob (for downloadability)
+  function blobUrl(url) {
+    fetch(url)
+      .then((response) => {
+        return response.blob();
+      })
+      .then((blob) => {
+        const blobbedUrl = URL.createObjectURL(blob);
+        setDownloadUrl(blobbedUrl);
+      })
+      .catch(() => console.log('Error'));
+  }
+
+  // use state to access storage
+  function historyToState() {
+    const keys = Object.keys(window.localStorage);
+    const justKeys = keys.filter((k) => {
+      return parseInt(parseInt(k));
+    });
+    justKeys.sort((a, b) => b - a);
+    const keyMap = [];
+    justKeys.forEach((e) => {
+      keyMap.push(JSON.parse(window.localStorage[e]));
+    });
+    console.log(keyMap);
+    setMemeHistory(keyMap);
+  }
+
+  // save download to history
+  function saveToHistory() {
+    const keys = Object.keys(window.localStorage);
+    const justKeys = keys.filter((k) => {
+      return parseInt(parseInt(k));
+    });
+    const meme = {
+      num: justKeys.length + 1,
+      topText: top,
+      bottomText: bottom,
+      image: background,
+      extension: fileExtension,
+    };
+    const id = justKeys.length + 1;
+    window.localStorage.setItem(id, JSON.stringify(meme));
+    historyToState();
+  }
+
+  // render history to table
+  function history() {
+    return memeHistory.map((meme) => {
+      return (
+        <tr key={meme.num}>
+          <td>{meme.num}</td>
+          <td>{meme.topText}</td>
+          <td>{meme.bottomText}</td>
+          <td>{meme.image}</td>
+          <td>{meme.extension}</td>
+        </tr>
+      );
+    });
   }
 
   return (
@@ -79,7 +128,7 @@ function App() {
         data-test-id="generate-meme"
         onClick={() => {
           setQueryString(createUrl());
-          downloadMeme(createUrl());
+          blobUrl(createUrl());
         }}
       >
         Update Preview
@@ -102,11 +151,35 @@ function App() {
         <button
           disabled={downloadUrl === '' ? true : false}
           aria-label="download meme"
+          onClick={() => saveToHistory()}
         >
           Download
         </button>
       </a>
       {downloadUrl === '' ? <span>Create your meme first</span> : null}
+      <div>
+        <h2>Your History</h2>
+        <button
+          onClick={() => {
+            window.localStorage.clear();
+            setMemeHistory([]);
+          }}
+        >
+          Clear your History
+        </button>
+        <table>
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Top Text</th>
+              <th>Bottom Text</th>
+              <th>Meme template</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>{history()}</tbody>
+        </table>
+      </div>
     </>
   );
 }
