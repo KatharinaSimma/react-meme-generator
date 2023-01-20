@@ -129,7 +129,7 @@ function App() {
           onChange={(e) => setBottom(e.currentTarget.value)}
         />
         <br />
-        <label htmlFor="backgroundText">Change your template: </label>
+        <label htmlFor="backgroundText">Meme template</label>
         <input
           id="backgroundText"
           value={background}
