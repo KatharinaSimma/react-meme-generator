@@ -1,4 +1,13 @@
 import { useState } from 'react';
+import {
+  Button,
+  Container,
+  Controls,
+  Download,
+  Header,
+  History,
+  Preview,
+} from './styledComponents';
 
 const host = 'https://api.memegen.link/images';
 const fileExtension = '.jpg';
@@ -98,75 +107,74 @@ function App() {
   }
 
   return (
-    <>
-      <h1>The Amazing Meme Generator!</h1>
-      <p>Create. memes. quickly.</p>
-      <h2>Enter your text here:</h2>
-      <label htmlFor="topText">Top text </label>
-      <input
-        id="topText"
-        value={top}
-        onChange={(e) => setTop(e.currentTarget.value)}
-      />
-      <br />
-      <label htmlFor="bottomText">Bottom text: </label>
-      <input
-        id="bottomText"
-        value={bottom}
-        onChange={(e) => setBottom(e.currentTarget.value)}
-      />
-      <br />
-      <label htmlFor="backgroundText">Change your template: </label>
-      <input
-        id="backgroundText"
-        value={background}
-        onChange={(e) => setBackground(e.currentTarget.value)}
-      />
-      {/* {previewError && <span>`${background}his is not a valid meme`</span>} */}
-      <br />
-      <button
-        data-test-id="generate-meme"
-        onClick={() => {
-          setQueryString(createUrl());
-          blobUrl(createUrl());
-        }}
-      >
-        Update Preview
-      </button>
-      <br />
-      <h2>This is your preview:</h2>
-      <div>
+    <Container>
+      <Header className="header">
+        <h1>The Amazing Meme Generator!</h1>
+        <h2>Create. memes. quickly.</h2>
+      </Header>
+
+      <Controls className="controls">
+        <h3>Enter your text here:</h3>
+        <label htmlFor="topText">Top text: </label>
+        <input
+          id="topText"
+          value={top}
+          onChange={(e) => setTop(e.currentTarget.value)}
+        />
+        <br />
+        <label htmlFor="bottomText">Bottom text: </label>
+        <input
+          id="bottomText"
+          value={bottom}
+          onChange={(e) => setBottom(e.currentTarget.value)}
+        />
+        <br />
+        <label htmlFor="backgroundText">Change your template: </label>
+        <input
+          id="backgroundText"
+          value={background}
+          onChange={(e) => setBackground(e.currentTarget.value)}
+        />
+        <br />
+        <Button
+          data-test-id="generate-meme"
+          onClick={() => {
+            setQueryString(createUrl());
+            blobUrl(createUrl());
+          }}
+        >
+          Update Preview
+        </Button>
+      </Controls>
+
+      <Preview className="preview">
         <img
           src={queryString}
           alt="preview of the meme"
           width="400"
           data-test-id="meme-image"
         />
-      </div>
-      <br />
-      <a
-        download={`${background}_${top ? top : 'x'}_${bottom ? bottom : 'y'}`}
-        href={downloadUrl}
-      >
-        <button
-          disabled={downloadUrl === '' ? true : false}
-          aria-label="download meme"
-          onClick={() => saveToHistory()}
+      </Preview>
+
+      <Download className="download">
+        <a
+          download={`${background}_${top ? top : 'x'}_${bottom ? bottom : 'y'}`}
+          href={downloadUrl}
         >
-          Download
-        </button>
-      </a>
-      {downloadUrl === '' ? <span>Create your meme first</span> : null}
-      <div>
-        <h2>Your History</h2>
-        <button
-          onClick={() => {
-            window.localStorage.clear();
-            setMemeHistory([]);
-          }}
-        >
-          Clear your History
-        </button>
+          <Button
+            disabled={downloadUrl === '' ? true : false}
+            aria-label="download meme"
+            onClick={() => saveToHistory()}
+          >
+            Download
+          </Button>
+        </a>
+        {downloadUrl === '' ? <span> Create your meme first</span> : null}
+      </Download>
+
+      <History className="history">
+        <hr />
+        <h3>Your History</h3>
         <table>
           <thead>
             <tr>
@@ -179,8 +187,16 @@ function App() {
           </thead>
           <tbody>{history()}</tbody>
         </table>
-      </div>
-    </>
+        <Button
+          onClick={() => {
+            window.localStorage.clear();
+            setMemeHistory([]);
+          }}
+        >
+          Clear your History
+        </Button>
+      </History>
+    </Container>
   );
 }
 
